@@ -1,1 +1,53 @@
+pipeline {
+    agent any
 
+    environment {
+        IMAGE_NAME = "seifayari1717/country-service"
+        TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/saifayari/Country-service.git'
+            }
+        }
+
+        stage('Build Maven') {
+            steps {
+                bat 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %IMAGE_NAME%:%TAG% ."
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([string(credentialsId: 'dockerhub-paswd', variable: 'PASS')]) {
+                    bat "docker login -u seifayari1717 -p %PASS%"
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                bat "docker push %IMAGE_NAME%:%TAG%"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                bat '''
+                docker rm -f country-service || exit 0
+                docker run -d --name country-service -p 8082:8082 %IMAGE_NAME%:%TAG%
+                '''
+            }
+        }
+    }
+}
