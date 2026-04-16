@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app1:
+    image: seifayari1717/country-service:1.0
+    container_name: country-service-1
+    ports:
+      - "8080:8082"
+
+  app2:
+    image: seifayari1717/country-service:1.0
+    container_name: country-service-2
+    ports:
+      - "8081:8082"
